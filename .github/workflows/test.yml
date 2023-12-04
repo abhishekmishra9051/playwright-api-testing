@@ -26,7 +26,7 @@ jobs:
         working-directory: ${{ env.ROOT_PATH }}
 
       - name: Installing Playwright Browsers
-        run: npm playwright install --with-deps
+        run: yarn playwright install --with-deps
         working-directory: ${{ env.ROOT_PATH }}
 
       - name: Install AWS CLI
