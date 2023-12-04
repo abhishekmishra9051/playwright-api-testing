@@ -17,7 +17,11 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
 
   // Reporter to use
-  reporter: 'html',
+  reporter: [
+
+    ['json', { outputFile: './test-results/test-results.json' }]
+  ],
+
 
   use: {
     // Base URL to use in actions like `await page.goto('/')`.
@@ -26,17 +30,11 @@ export default defineConfig({
     // Collect trace when retrying the failed test.
     trace: 'on-first-retry',
   },
-  // Configure projects for major browsers.
   projects: [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  // Run your local dev server before starting the tests.
-  webServer: {
-    command: 'npm run start',
-    url: 'http://127.0.0.1:3030',
-    reuseExistingServer: !process.env.CI,
-  },
+
 });
