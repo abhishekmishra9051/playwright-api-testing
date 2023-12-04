@@ -3,7 +3,7 @@ name: Test Hello-world API
 on:
   push:
     branches:
-      - master
+      - playwright-api-testing-s3-reports-public-url
 
 env:
   ROOT_PATH: '${{ github.workspace }}'
@@ -29,6 +29,20 @@ jobs:
         run: yarn playwright install --with-deps
         working-directory: ${{ env.ROOT_PATH }}
 
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get install -y awscli
+
+      - name: Configure AWS
+        run: |
+          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+          aws configure set default.region us-east-1  
+          aws configure set default.output json
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
       - name: Starting Server
         run: npm start
         working-directory: ${{ env.ROOT_PATH }}
@@ -36,3 +50,10 @@ jobs:
       - name: Running tests
         run: npm test
         working-directory: ${{ env.ROOT_PATH }}
+
+      - name: Store the test-results.json file in an S3 bucket for JSON Reports
+        run: |
+          aws s3 cp $GITHUB_WORKSPACE/test-results/test-results.json ${{vars.S3_URI}}
+
+      - name: Generate public links to JSON reports stored in an S3 bucket.
+        run: echo "${{vars.OBJECT_URL}}"
