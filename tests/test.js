@@ -1,7 +1,14 @@
 const { chromium, test } = require('playwright');
-const { test, expect } = require('@playwright/test');
-test('Hello World API test', async ({ page }) => {
+
+test('Hello-world API', async () => {
+  const browser = await chromium.launch();
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
   await page.goto('http://localhost:3000');
-  const text = await page.innerText('body');
+  const text = await page.textContent('body');
+
   expect(text).toBe('Hello, World!');
+
+  await browser.close();
 });
