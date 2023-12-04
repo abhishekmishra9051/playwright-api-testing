@@ -3,7 +3,7 @@ name: Test Hello-world API
 on:
   push:
     branches:
-      - master
+      - playwright-api-testing-s3
 
 env:
   ROOT_PATH: '${{ github.workspace }}'
