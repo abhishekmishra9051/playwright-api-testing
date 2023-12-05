@@ -1,7 +1,7 @@
 ## To set up a project for automating API testing using Playwright and GitHub Actions, you'll need to perform the following steps:
 
 # Project Structure
-
+```
 playwright-api-testing/
   |- .github/workflows/
   |    |- test.yml 
@@ -17,3 +17,4 @@ playwright-api-testing/
   |        |- playwright.config.js   // Playwright setup file
   |
   |- package.json                    //  Manifest file 
+```
