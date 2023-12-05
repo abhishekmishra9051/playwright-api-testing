@@ -18,10 +18,12 @@
   },
   "homepage": "https://github.com/abhishekmishra9051/playwright-api-testing#readme",
   "dependencies": {
+    "allure-commandline": "^2.24.1",
     "express": "^4.18.2",
     "playwright": "^1.40.1"
   },
   "devDependencies": {
-    "@playwright/test": "^1.40.1"
+    "@playwright/test": "^1.40.1",
+    "allure-playwright": "^2.9.2"
   }
 }

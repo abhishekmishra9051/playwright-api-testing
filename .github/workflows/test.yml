@@ -6,7 +6,10 @@ on:
       - playwright-api-testing-s3-reports-public-url
 
 env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   ROOT_PATH: '${{ github.workspace }}'
+  REPORT_ID: '${{github.run_id}}'
 
 jobs:
   test:
@@ -39,10 +42,8 @@ jobs:
           aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
           aws configure set default.region us-east-1  
           aws configure set default.output json
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
+     
+        
       - name: Starting Server
         run: npm start
         working-directory: ${{ env.ROOT_PATH }}
@@ -52,10 +53,21 @@ jobs:
         working-directory: '${{env.ROOT_PATH}}'
         continue-on-error: true
 
-      - name: Store the test-results.json file in an S3 bucket for JSON Reports
+      - name: Uploading test reports to Amazon S3
         if: always()
         run: |
-          aws s3 cp $GITHUB_WORKSPACE/test-results/test-results.json ${{vars.S3_URI}}
+          aws s3 cp "${{env.ROOT_PATH}}/playwright-report/index.html" s3://hello-world-api-testing-plt/playwright-report/report_${{env.REPORT_ID}}.html
 
-      - name: Generate public links to JSON reports stored in an S3 bucket.
-        run: echo "${{vars.OBJECT_URL}}"
+      - name: URL of Playwright Report
+        run: echo "https://hello-world-api-testing-plt.s3.us-east-1.amazonaws.com/playwright-report/report_${{env.REPORT_ID}}.html"
+
+      - name: Generate Allure Reports
+        run: npx allure generate --clean
+
+      - name: Uploading Allure reports to S3
+        run: |
+          aws s3api put-object --bucket hello-world-api-testing-plt --key allure-reports/report_${{env.REPORT_ID}}/
+          aws s3 sync ${{env.ROOT_PATH}}/allure-report s3://hello-world-api-testing-plt/allure-reports/report_${{env.REPORT_ID}}/
+
+      - name: URL of Allure Report
+        run: echo "https://hello-world-api-testing-plt.s3.us-east-1.amazonaws.com/allure-reports/report_${{env.REPORT_ID}}/index.html"
