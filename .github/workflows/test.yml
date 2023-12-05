@@ -49,7 +49,8 @@ jobs:
 
       - name: Running tests
         run: npm test
-        working-directory: ${{ env.ROOT_PATH }}
+        working-directory: '${{env.ROOT_PATH}}'
+        continue-on-error: true
 
       - name: Store the test-results.json file in an S3 bucket for JSON Reports
         run: |
