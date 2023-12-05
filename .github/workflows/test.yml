@@ -6,10 +6,10 @@ on:
       - playwright-api-testing-s3-reports-public-url
 
 env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: us-east-1
+  S3_BUCKET: hello-world-api-testing-plt
   ROOT_PATH: '${{ github.workspace }}'
-  REPORT_ID: '${{github.run_id}}'
+  REPORT_ID: '${{ github.run_id }}'
 
 jobs:
   test:
@@ -19,7 +19,7 @@ jobs:
       - name: Code Checkout
         uses: actions/checkout@v3
       
-      - name: Installing NodeJS
+      - name: Installing Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
@@ -33,41 +33,39 @@ jobs:
         working-directory: ${{ env.ROOT_PATH }}
 
       - name: Install AWS CLI
-        run: |
-          sudo apt-get install -y awscli
+        run: sudo apt-get install -y awscli
 
       - name: Configure AWS
         run: |
-          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-          aws configure set default.region us-east-1  
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set default.region $AWS_REGION
           aws configure set default.output json
-     
-        
+       
       - name: Starting Server
         run: npm start
         working-directory: ${{ env.ROOT_PATH }}
 
       - name: Running tests
         run: npm test
-        working-directory: '${{env.ROOT_PATH}}'
+        working-directory: ${{ env.ROOT_PATH }}
         continue-on-error: true
 
       - name: Uploading test reports to Amazon S3
         if: always()
         run: |
-          aws s3 cp "${{env.ROOT_PATH}}/playwright-report/index.html" s3://hello-world-api-testing-plt/playwright-report/report_${{env.REPORT_ID}}.html
+          aws s3 cp "${{ env.ROOT_PATH }}/playwright-report/index.html" "s3://${S3_BUCKET}/playwright-report/report_${{ env.REPORT_ID }}.html"
 
       - name: URL of Playwright Report
-        run: echo "https://hello-world-api-testing-plt.s3.us-east-1.amazonaws.com/playwright-report/report_${{env.REPORT_ID}}.html"
+        run: echo "https://${S3_BUCKET}.s3.${AWS_REGION}.amazonaws.com/playwright-report/report_${{ env.REPORT_ID }}.html"
 
       - name: Generate Allure Reports
         run: npx allure generate --clean
 
       - name: Uploading Allure reports to S3
         run: |
-          aws s3api put-object --bucket hello-world-api-testing-plt --key allure-reports/report_${{env.REPORT_ID}}/
-          aws s3 sync ${{env.ROOT_PATH}}/allure-report s3://hello-world-api-testing-plt/allure-reports/report_${{env.REPORT_ID}}/
+          aws s3api put-object --bucket $S3_BUCKET --key "allure-reports/report_${{ env.REPORT_ID }}/index.html"
+          aws s3 sync "${{ env.ROOT_PATH }}/allure-report" "s3://${S3_BUCKET}/allure-reports/report_${{ env.REPORT_ID }}/"
 
       - name: URL of Allure Report
-        run: echo "https://hello-world-api-testing-plt.s3.us-east-1.amazonaws.com/allure-reports/report_${{env.REPORT_ID}}/index.html"
+        run: echo "https://${S3_BUCKET}.s3.${AWS_REGION}.amazonaws.com/allure-reports/report_${{ env.REPORT_ID }}/index.html"
