@@ -53,6 +53,7 @@ jobs:
         continue-on-error: true
 
       - name: Store the test-results.json file in an S3 bucket for JSON Reports
+        if: always()
         run: |
           aws s3 cp $GITHUB_WORKSPACE/test-results/test-results.json ${{vars.S3_URI}}
 
